@@ -53,7 +53,7 @@ export default function ClientsListPage() {
                 <td className="px-3 py-2 text-slate-400">{c.onboardingStatus}</td>
                 <td className="px-3 py-2">
                   <a
-                    href={`/clients/${c.id}`}
+                    href={`${window.location.origin}/clients/${c.id}`}
                     target="_blank"
                     rel="noreferrer"
                     className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-slate-200 hover:border-brand-500 hover:bg-slate-900 transition"

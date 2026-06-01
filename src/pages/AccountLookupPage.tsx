@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Card, SectionHeader } from '../components/ui'
 import { fetchMock } from '../lib/mockService'
 import { Portfolio } from '../types/portfolio'
@@ -100,14 +99,14 @@ export default function AccountLookupPage() {
                       <td className="px-3 py-3">{row.accountType}</td>
                       <td className="px-3 py-3">${row.balance.toLocaleString('en-US')}</td>
                       <td className="px-3 py-3">
-                        <Link
-                          to={`/clients/${row.clientId}`}
+                        <a
+                          href={`${window.location.origin}/clients/${row.clientId}`}
                           target="_blank"
                           rel="noreferrer"
                           className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-slate-200 transition hover:bg-slate-900"
                         >
                           Open client record
-                        </Link>
+                        </a>
                       </td>
                     </tr>
                   ))}

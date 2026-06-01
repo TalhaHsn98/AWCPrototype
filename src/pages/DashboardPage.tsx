@@ -91,19 +91,19 @@ export default function DashboardPage() {
               <Badge variant="info">Manual workflow</Badge>
             </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <a href="/accounts" target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 hover:border-brand-500 hover:bg-slate-900 transition">
+              <a href={`${window.location.origin}/accounts`} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 hover:border-brand-500 hover:bg-slate-900 transition">
                 <div className="font-semibold">Account Lookup</div>
                 <div className="text-slate-400 text-sm">Search account numbers one by one in a separate screen.</div>
               </a>
-              <a href="/net-worth" target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 hover:border-brand-500 hover:bg-slate-900 transition">
+              <a href={`${window.location.origin}/net-worth`} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 hover:border-brand-500 hover:bg-slate-900 transition">
                 <div className="font-semibold">Net Worth Worksheet</div>
                 <div className="text-slate-400 text-sm">Manual spreadsheet-style calculation before client calls.</div>
               </a>
-              <a href="/clients" target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 hover:border-brand-500 hover:bg-slate-900 transition">
+              <a href={`${window.location.origin}/clients`} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 hover:border-brand-500 hover:bg-slate-900 transition">
                 <div className="font-semibold">Client Search</div>
                 <div className="text-slate-400 text-sm">Open client records in separate tabs for disconnected account work.</div>
               </a>
-              <a href="/crm" target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 hover:border-brand-500 hover:bg-slate-900 transition">
+              <a href={`${window.location.origin}/crm`} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-slate-100 hover:border-brand-500 hover:bg-slate-900 transition">
                 <div className="font-semibold">CRM</div>
                 <div className="text-slate-400 text-sm">Navigate notes, tasks, and service requests in separate modules.</div>
               </a>
