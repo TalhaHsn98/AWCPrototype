@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { Card, SectionHeader } from '../components/ui'
 import { fetchMock, simulatePortfolioEvent } from '../lib/mockService'
 import { Portfolio } from '../types/portfolio'
@@ -116,7 +116,7 @@ export default function PortfoliosPage() {
             <SectionHeader title="Client portfolios" subtitle="Balances by client" />
             <div className="mt-4 space-y-3">
               {portfolios.map((p) => (
-                <div key={p.clientId} className="rounded-2xl border border-slate-800 bg-slate-950 p-4 flex items-center justify-between">
+                <Link key={p.clientId} to={`/portfolios/${p.clientId}`} className="block rounded-2xl border border-slate-800 bg-slate-950 p-4 flex items-center justify-between hover:border-brand-500 hover:bg-slate-900/70 transition">
                   <div>
                     <div className="text-slate-400 text-xs">Client</div>
                     <div className="mt-1 font-medium text-slate-100">{clientNameMap[p.clientId] || p.clientId}</div>
@@ -124,9 +124,9 @@ export default function PortfoliosPage() {
                   <div className="text-right">
                     <div className="text-slate-400 text-xs">Balance</div>
                     <div className="mt-1 text-lg font-semibold">${p.accounts.reduce((s, a) => s + (a.balance || 0), 0).toLocaleString('en-US')}</div>
-                    <div className="mt-2 text-sm text-slate-400">Balance breakdown requires manual account review.</div>
+                    <div className="mt-2 text-sm text-slate-400">Click to view portfolio details.</div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </Card>
