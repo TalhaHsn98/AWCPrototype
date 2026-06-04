@@ -1,6 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Badge, Card, DataTable, SectionHeader } from '../components/ui'
+import Modal from '../components/ui/Modal'
+import NBAWorkflowPrompter from '../components/NBAWorkflowPrompter'
 import { fetchMock, createCrmNote } from '../lib/mockService'
 import CRMNotesList from '../components/CRMNotesList'
 import { Client } from '../types/client'
@@ -19,6 +21,10 @@ export default function CRMPage() {
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([])
   const [newNote, setNewNote] = useState('')
+  const [meetingPrepModalOpen, setMeetingPrepModalOpen] = useState(false)
+  const [meetingPrepSummary, setMeetingPrepSummary] = useState('')
+  const [meetingPrepLoading, setMeetingPrepLoading] = useState(false)
+  const meetingPrepTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     fetchMock<Client[]>('clients').then(setClients)
@@ -40,6 +46,15 @@ export default function CRMPage() {
     }
   }, [clients, routeClientId, selectedClientId])
 
+  useEffect(() => {
+    return () => {
+      if (meetingPrepTimeoutRef.current) {
+        window.clearTimeout(meetingPrepTimeoutRef.current)
+        meetingPrepTimeoutRef.current = null
+      }
+    }
+  }, [])
+
   const clientOptions = useMemo(
     () => [{ id: '', name: 'All clients' }, ...clients],
     [clients]
@@ -48,6 +63,11 @@ export default function CRMPage() {
   const selectedClient = useMemo(
     () => clients.find((client) => client.id === selectedClientId),
     [clients, selectedClientId]
+  )
+
+  const activeClient = useMemo(
+    () => selectedClient || clients[0],
+    [selectedClient, clients]
   )
 
   const taskClientMap = useMemo(
@@ -102,7 +122,7 @@ export default function CRMPage() {
       id: task.id,
       channel: 'Task',
       title: task.title,
-      client: taskClientMap[task.clientId] || 'Unknown',
+client: task.clientId ? taskClientMap[task.clientId] || 'Unknown' : 'Unknown',
       due: task.dueDate || 'ASAP',
       priority: task.priority || 'medium',
       status: task.status || 'open'
@@ -130,6 +150,8 @@ export default function CRMPage() {
       .slice(0, 5)
   }, [followUps, filteredRequests, taskClientMap])
 
+  const latestClientNote = useMemo(() => filteredNotes[0], [filteredNotes])
+
   const notesByClient = useMemo(
     () => filteredNotes.slice(0, 5),
     [filteredNotes]
@@ -147,6 +169,97 @@ export default function CRMPage() {
       setNotes((current) => [note, ...current])
       setNewNote('')
     })
+  }
+
+  const generateMeetingPrepSummary = (request: ServiceRequest) => {
+    const client = activeClient
+    const clientName = client?.name || 'Client'
+    const riskProfile = client?.riskProfile || 'Not available'
+    const kycStatus = client?.kycStatus?.status || 'Unknown'
+    const kycUpdated = client?.kycStatus?.lastUpdated
+    const onboardingStatus = client?.onboardingStatus || 'Unknown'
+    const lastMeeting = meetingHistory[0]
+    const latestActivity = request.history?.[0]
+    const recentNote = latestClientNote?.content
+
+    const lines = [
+      `Meeting prep summary for ${clientName}.`,
+      '',
+      `Profile snapshot: ${riskProfile} risk profile · KYC ${kycStatus}${kycUpdated ? ` (updated ${kycUpdated})` : ''} · Onboarding ${onboardingStatus}.`,
+      '',
+      `Request: ${request.summary || 'No summary available'}`,
+      `Status: ${request.status}`,
+      `Priority: ${request.priority}`,
+    ]
+
+    if (recentNote) {
+      lines.push('', `Recent CRM update: "${recentNote}"`)
+    }
+
+    if (lastMeeting) {
+      lines.push(
+        '',
+        `Most recent meeting: ${lastMeeting.summary} on ${lastMeeting.date}.`,
+        'Focus for this prep: connect current request to the client’s latest conversation.'
+      )
+    }
+
+    if (latestActivity) {
+      lines.push(
+        '',
+        `Latest request activity: ${latestActivity.action} by ${latestActivity.user} on ${latestActivity.timestamp}.`,
+        `Use this to confirm what triggered the meeting request.`
+      )
+    }
+
+    lines.push(
+      '',
+      'Meeting flow:',
+      '1. Start with a quick recap of the client’s profile and recent interactions.',
+      '2. Confirm the service request details and why this meeting is needed.',
+      '3. Review the advisor recommendation based on the current priority and risk profile.',
+      '4. Close with clear next steps and ownership for follow-up items.',
+      '',
+      'What to say:',
+      `- "Avery, I want to confirm your current priorities given the ${riskProfile.toLowerCase()} risk stance and recent request."`,
+      '- "I reviewed the latest CRM update and project timeline to make sure we stay aligned."',
+      '- "Let’s walk through the request, agree on the next steps, and set timing for the follow-up."',
+      '',
+      'Prep checklist:',
+      '- Have the request summary and status visible.',
+      '- Bring the last meeting context and recent note update to the discussion.',
+      '- Be ready to offer a concise recommendation tied to the client’s risk and onboarding status.',
+      '',
+      'Recommended note structure:',
+      `• Client: ${clientName}`,
+      '• Purpose: Prepare advisory meeting agenda and confirm service request progress.',
+      '• Key talking points: Profile update, request alignment, next steps.',
+      '• Follow-up: Actions, deadlines, and ownership.'
+    )
+
+    return lines.join('\n')
+  }
+
+  const createMeetingPrepForRequest = (request: ServiceRequest) => {
+    setMeetingPrepLoading(true)
+    setMeetingPrepSummary(generateMeetingPrepSummary(request))
+    if (meetingPrepTimeoutRef.current) {
+      window.clearTimeout(meetingPrepTimeoutRef.current)
+    }
+    meetingPrepTimeoutRef.current = window.setTimeout(() => {
+      setMeetingPrepLoading(false)
+      setMeetingPrepModalOpen(true)
+      meetingPrepTimeoutRef.current = null
+    }, 3000)
+  }
+
+  const closeMeetingPrepModal = () => {
+    setMeetingPrepModalOpen(false)
+    if (meetingPrepTimeoutRef.current) {
+      window.clearTimeout(meetingPrepTimeoutRef.current)
+      meetingPrepTimeoutRef.current = null
+    }
+    setMeetingPrepLoading(false)
   }
 
   // Alternative investments (AS-IS) - stored per-client in localStorage
@@ -254,6 +367,23 @@ export default function CRMPage() {
               ))}
             </select>
           </label>
+          <Button
+            variant="primary"
+            onClick={() => createMeetingPrepForRequest(filteredRequests[0] || {
+              id: 'default-request',
+              clientId: activeClient?.id || 'unknown',
+              createdBy: 'system',
+              createdAt: new Date().toISOString(),
+              priority: 'medium',
+              status: 'pending',
+              summary: 'No active service requests yet.',
+              history: []
+            })}
+            disabled={meetingPrepLoading}
+            className="px-5"
+          >
+            {meetingPrepLoading ? 'Generating AI prep...' : 'AI generate meet Prep'}
+          </Button>
           <div className="flex flex-wrap gap-3">
             <Badge variant="info">{clients.length} Clients</Badge>
             <Badge variant="warning">{reminders.length} Reminders</Badge>
@@ -282,6 +412,13 @@ export default function CRMPage() {
               </div>
             </div>
           </Card>
+
+          <NBAWorkflowPrompter
+            client={activeClient}
+            notes={filteredNotes}
+            interactions={filteredInteractions}
+            requests={filteredRequests}
+          />
 
           <Card>
             <SectionHeader title="Recent Notes" subtitle="Review or update the top CRM entries." />
@@ -409,7 +546,7 @@ export default function CRMPage() {
                         {task.priority || 'low'}
                       </Badge>
                     </div>
-                    <div className="mt-2 text-slate-400 text-sm">Client: {taskClientMap[task.clientId] || 'Unknown'}</div>
+                    <div className="mt-2 text-slate-400 text-sm">Client: {task.clientId ? taskClientMap[task.clientId] || 'Unknown' : 'Unknown'}</div>
                     <div className="mt-1 text-slate-500 text-xs">Due: {task.dueDate || 'TBD'}</div>
                   </div>
                 ))
@@ -454,7 +591,7 @@ export default function CRMPage() {
                   data={followUps}
                   columns={[
                     { header: 'Task', accessor: (task) => task.title },
-                    { header: 'Client', accessor: (task) => taskClientMap[task.clientId] || 'Unknown' },
+                    { header: 'Client', accessor: (task) => task.clientId ? taskClientMap[task.clientId] || 'Unknown' : 'Unknown' },
                     { header: 'Due', accessor: (task) => task.dueDate || 'TBD' },
                     { header: 'Status', accessor: (task) => <Badge variant={task.status === 'done' ? 'success' : 'warning'}>{task.status}</Badge> }
                   ]}
@@ -488,6 +625,13 @@ export default function CRMPage() {
           )}
         </div>
       </Card>
+      <Modal open={meetingPrepModalOpen} onClose={closeMeetingPrepModal} title="Meeting Prep Summary">
+        {meetingPrepSummary ? (
+          <div className="whitespace-pre-wrap text-sm leading-6 text-slate-200">{meetingPrepSummary}</div>
+        ) : (
+          <div className="text-slate-400">No meeting prep summary available.</div>
+        )}
+      </Modal>
     </div>
   )
 }

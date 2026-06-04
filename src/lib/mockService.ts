@@ -13,8 +13,7 @@ function getTotalAum() {
 }
 
 export async function fetchMock<T>(key: MockKey): Promise<T> {
-  // simulate network latency
-  // @ts-ignore
+ 
   const data = mockData[key]
   return delay(300 + Math.random() * 400, data) as Promise<T>
 }
@@ -25,7 +24,6 @@ function persistToStorage() {
     const snapshot = JSON.stringify({ crmNotes: mockData.crmNotes, tasks: mockData.tasks, portfolioSnapshots: mockData.portfolioSnapshots })
     window.localStorage.setItem('advisor-mock-data', snapshot)
   } catch (e) {
-    // ignore in non-browser environments
   }
 }
 

@@ -10,6 +10,7 @@ const links = [
   { to: '/sticky-notes', label: 'Sticky Notes' },
   { to: '/reminders', label: 'Reminders' },
   { to: '/rmd-scan', label: 'RMD Scanner' },
+  { to: '/portfolio-diagnostics', label: 'Portfolio Diagnostics' },
   { to: '/tier-report', label: 'Tiering (AS-IS)' },
   { to: '/portfolios', label: 'Portfolios' },
   { to: '/crm', label: 'CRM' },

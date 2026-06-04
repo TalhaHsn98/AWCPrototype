@@ -14,6 +14,7 @@ import StickyNotesPage from './pages/StickyNotesPage'
 import RemindersPage from './pages/RemindersPage'
 import RmdScannerPage from './pages/RmdScannerPage'
 import PortfolioLoginPage from './pages/PortfolioLoginPage'
+import PortfolioDiagnosticsPage from './pages/PortfolioDiagnosticsPage'
 import TierReportPage from './pages/TierReportPage'
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="sticky-notes" element={<StickyNotesPage />} />
           <Route path="reminders" element={<RemindersPage />} />
           <Route path="rmd-scan" element={<RmdScannerPage />} />
+          <Route path="portfolio-diagnostics" element={<PortfolioDiagnosticsPage />} />
           <Route path="tier-report" element={<TierReportPage />} />
           <Route path="portfolios" element={<PortfoliosPage />} />
           <Route path="portfolios/:clientId" element={<PortfoliosPage />} />
